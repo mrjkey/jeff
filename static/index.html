@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Deebot Control</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+<main>
+    <header>
+        <div>
+            <h1 id="name">Deebot</h1>
+            <p id="model" class="muted"></p>
+        </div>
+        <span id="status" class="pill">connecting</span>
+    </header>
+
+    <p id="error" class="error" hidden></p>
+
+    <form id="verification" class="card verification" hidden>
+        <h2>Verify this device</h2>
+        <p id="verification-message"></p>
+        <div class="row">
+            <input id="verification-code" inputmode="numeric" autocomplete="one-time-code" placeholder="Code from the e-mail" required>
+            <button type="submit" class="primary">Verify</button>
+            <button type="button" id="verification-resend">Send new code</button>
+        </div>
+    </form>
+
+    <section class="cards">
+        <div class="card"><span class="muted">Battery</span><strong id="battery">–</strong></div>
+        <div class="card"><span class="muted">Cleaning</span><strong id="clean">–</strong></div>
+        <div class="card"><span class="muted">Charging</span><strong id="charge">–</strong></div>
+    </section>
+
+    <section class="controls">
+        <button data-command="Clean" class="primary">Start</button>
+        <button data-command="Pause">Pause</button>
+        <button data-command="Resume">Resume</button>
+        <button data-command="Stop">Stop</button>
+        <button data-command="Charge">Return to dock</button>
+        <button data-command="PlaySound" data-args="[30]">Locate</button>
+    </section>
+
+    <section id="map-section" hidden>
+        <div class="map-header">
+            <h2>Map</h2>
+            <div class="segmented" role="radiogroup" aria-label="Map click action">
+                <label><input type="radio" name="map-mode" value="rooms" checked> Select rooms</label>
+                <label><input type="radio" name="map-mode" value="goto"> Go to point</label>
+            </div>
+        </div>
+        <svg id="map" class="map" aria-label="Robot map">
+            <g id="map-rooms"></g>
+            <g id="map-boundaries"></g>
+            <g id="map-labels"></g>
+            <circle id="map-charger" class="charger" hidden></circle>
+            <circle id="map-target" class="target" hidden></circle>
+            <g id="map-robot" class="robot" hidden>
+                <circle></circle>
+                <line x1="0" y1="0" y2="0"></line>
+            </g>
+        </svg>
+        <p id="map-hint" class="muted">Loading map…</p>
+        <div class="row">
+            <button id="clean-rooms" class="primary">Clean selected rooms</button>
+            <button id="clear-rooms">Clear selection</button>
+        </div>
+    </section>
+
+    <section class="settings">
+        <label>Suction
+            <select id="suction" data-command="SetCleanSpeed">
+                <option value="1">Quiet</option>
+                <option value="2">Standard</option>
+                <option value="3">Max</option>
+                <option value="4">Max+</option>
+            </select>
+        </label>
+        <label id="water-setting" hidden>Water
+            <select id="water" data-command="SetWaterLevel">
+                <option value="1">Low</option>
+                <option value="2">Medium</option>
+                <option value="3">High</option>
+                <option value="4">Ultrahigh</option>
+            </select>
+        </label>
+        <button data-command="Refresh">Refresh</button>
+    </section>
+
+    <section>
+        <h2>Network</h2>
+        <p id="network" class="muted">–</p>
+    </section>
+
+    <section>
+        <h2>Consumables</h2>
+        <ul id="lifespan" class="lifespan"><li class="muted">–</li></ul>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,9 @@
+services:
+  jeff:
+    build: .
+    env_file: .env
+    # Only reachable from this machine. Use "3000:3000" to open it to your network
+    # (the page has no login, so anyone who can reach it can control the robot).
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped

@@ -1,0 +1,10 @@
+{
+  "name": "jeff",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Web control page for an Ecovacs Deebot robot",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "ecovacs-deebot": "1.0.0-alpha.23"
+  }
+}
