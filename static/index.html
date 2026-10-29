@@ -50,12 +50,61 @@
             <div class="segmented" role="radiogroup" aria-label="Map click action">
                 <label><input type="radio" name="map-mode" value="rooms" checked> Select rooms</label>
                 <label><input type="radio" name="map-mode" value="goto"> Go to point</label>
+                <label><input type="radio" name="map-mode" value="edit"> Edit map</label>
+            </div>
+        </div>
+        <div id="edit-tools" class="editor" hidden>
+            <div class="segmented" role="radiogroup" aria-label="Edit tool">
+                <label><input type="radio" name="edit-tool" value="boundary" checked> Boundaries</label>
+                <label><input type="radio" name="edit-tool" value="merge"> Merge</label>
+                <label><input type="radio" name="edit-tool" value="divide"> Divide</label>
+                <label><input type="radio" name="edit-tool" value="label"> Label</label>
+            </div>
+            <div class="row" data-tool="boundary">
+                <label>Type
+                    <select id="boundary-type">
+                        <option value="vw">Normal (keep out)</option>
+                        <option value="mw">No-mop zone</option>
+                    </select>
+                </label>
+                <label>Shape
+                    <select id="boundary-shape">
+                        <option value="zone">Box</option>
+                        <option value="wall">Line</option>
+                    </select>
+                </label>
+            </div>
+            <div class="row" data-tool="label">
+                <label>Room type
+                    <select id="room-type">
+                        <option value="0">Default (letter)</option>
+                        <option value="1">Living room</option>
+                        <option value="2">Dining room</option>
+                        <option value="3">Bedroom</option>
+                        <option value="4">Study</option>
+                        <option value="5">Kitchen</option>
+                        <option value="6">Bathroom</option>
+                        <option value="7">Laundry</option>
+                        <option value="8">Lounge</option>
+                        <option value="9">Storeroom</option>
+                        <option value="10">Kids room</option>
+                        <option value="11">Sunroom</option>
+                        <option value="12">Corridor</option>
+                        <option value="13">Balcony</option>
+                        <option value="14">Gym</option>
+                    </select>
+                </label>
+                <label class="grow">Custom name (optional)
+                    <input id="room-name" maxlength="32">
+                </label>
             </div>
         </div>
         <svg id="map" class="map" aria-label="Robot map">
             <g id="map-rooms"></g>
+            <g id="map-ghost"></g>
             <g id="map-boundaries"></g>
             <g id="map-labels"></g>
+            <g id="map-draft"></g>
             <circle id="map-charger" class="charger" hidden></circle>
             <circle id="map-target" class="target" hidden></circle>
             <g id="map-robot" class="robot" hidden>
@@ -64,9 +113,33 @@
             </g>
         </svg>
         <p id="map-hint" class="muted">Loading map…</p>
-        <div class="row">
+        <div class="row" id="room-actions">
             <button id="clean-rooms" class="primary">Clean selected rooms</button>
             <button id="clear-rooms">Clear selection</button>
+        </div>
+        <div class="row" id="edit-actions" hidden>
+            <button id="edit-apply" class="primary">Apply</button>
+            <button id="edit-cancel">Cancel</button>
+            <button id="delete-map" class="danger">Delete map</button>
+        </div>
+        <p id="notice" class="notice" hidden></p>
+    </section>
+
+    <section id="backup-section" class="backups" hidden>
+        <h2>Map backups</h2>
+        <p class="muted">Saved in <code>data/map-backups</code>: the rooms, labels and boundaries of the
+            current map, and the id of the robot's own backup of it.</p>
+        <div class="row">
+            <button id="backup-save">Save current map</button>
+        </div>
+        <div class="row" id="backup-controls" hidden>
+            <select id="backup-list" aria-label="Saved backup"></select>
+            <label class="check"><input type="checkbox" id="backup-show"> Show on map</label>
+        </div>
+        <div class="row" id="backup-actions" hidden>
+            <button id="backup-layout">Re-apply labels and boundaries</button>
+            <button id="backup-robot">Restore robot backup</button>
+            <button id="backup-delete">Delete backup</button>
         </div>
     </section>
 

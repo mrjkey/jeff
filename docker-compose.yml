@@ -6,4 +6,7 @@ services:
     # (the page has no login, so anyone who can reach it can control the robot).
     ports:
       - "127.0.0.1:3000:3000"
+    # Map backups are written to ./data/map-backups.
+    volumes:
+      - ./data:/app/data
     restart: unless-stopped

@@ -69,6 +69,8 @@ p { margin: 0; }
 .pill[data-state="offline"] { color: var(--danger); }
 
 .error { padding: 10px 14px; border-radius: 8px; background: var(--danger-bg); color: var(--danger); }
+.notice { margin-top: 10px; padding: 10px 14px; border-radius: 8px; background: var(--surface); border: 1px solid var(--ok); }
+code { font-size: 0.9em; }
 
 .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .card {
@@ -96,6 +98,7 @@ button, select, input {
 button { cursor: pointer; }
 button:hover:not(:disabled) { border-color: var(--accent); }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+button.danger { color: var(--danger); border-color: var(--danger); margin-left: auto; }
 button:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .lifespan { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
@@ -106,6 +109,11 @@ meter { width: 100%; }
 
 input { flex: 1 1 10rem; min-width: 0; background: var(--bg); }
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.row > label { flex: 0 1 auto; }
+.row > label.grow { flex: 1 1 12rem; }
+label.check { display: flex; align-items: center; gap: 6px; color: var(--text); font-size: 1rem; white-space: nowrap; }
+.backups { display: grid; gap: 10px; }
+.backups h2 { margin: 0; }
 .verification { gap: 10px; border-color: var(--warn); }
 .verification h2 { margin: 0; }
 
@@ -116,6 +124,12 @@ input { flex: 1 1 10rem; min-width: 0; background: var(--bg); }
 .segmented label:has(input:checked) { background: var(--accent); color: var(--accent-text); }
 .segmented label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
 .segmented input { position: absolute; opacity: 0; pointer-events: none; }
+
+.editor { display: grid; gap: 10px; margin-bottom: 8px; }
+.editor .segmented { justify-self: start; flex-wrap: wrap; }
+.editor [data-tool] { display: none; }
+.editor[data-tool="boundary"] [data-tool="boundary"],
+.editor[data-tool="label"] [data-tool="label"] { display: flex; }
 
 .map {
     display: block;
@@ -135,6 +149,15 @@ input { flex: 1 1 10rem; min-width: 0; background: var(--bg); }
 .room.selected { fill: var(--accent); fill-opacity: 0.55; }
 .boundary { fill: none; stroke: var(--danger); stroke-width: 2px; stroke-dasharray: 6 4; }
 .boundary.mw { stroke: var(--warn); }
+.map[data-mode="edit"] { touch-action: none; user-select: none; cursor: crosshair; }
+.map[data-mode="edit"] .room { cursor: pointer; }
+.map[data-mode="edit"] .room.selected:not(.picked) { fill: var(--room); fill-opacity: 1; }
+.map[data-mode="edit"] .boundary { pointer-events: none; }
+.map[data-mode="edit"][data-tool="boundary"] .boundary { pointer-events: all; stroke-width: 6px; cursor: pointer; }
+.room.picked { fill: var(--accent); fill-opacity: 0.55; }
+.boundary.picked { stroke: var(--accent); stroke-dasharray: none; }
+.draft { fill: var(--accent); fill-opacity: 0.15; stroke: var(--accent); stroke-width: 2px; stroke-dasharray: 6 4; pointer-events: none; }
+.ghost { fill: none; stroke: var(--text); stroke-opacity: 0.6; stroke-width: 1.5px; stroke-dasharray: 2 4; pointer-events: none; }
 #map-labels text { fill: var(--text); text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
 .robot circle { fill: var(--accent); stroke: var(--surface); stroke-width: 2px; }
 .robot line { stroke: var(--surface); stroke-width: 3px; }

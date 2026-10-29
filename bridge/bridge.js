@@ -6,6 +6,7 @@
 
 const readline = require('node:readline');
 const { readSettings, createApi, connectRobot } = require('./ecovacs');
+const maps = require('./maps');
 
 // stdout is reserved for the JSON protocol, so route all console logging to stderr.
 console.log = console.error;
@@ -46,11 +47,35 @@ const ROBOT_COMMANDS = {
             throw new Error('Invalid target position');
         }
         vacbot.run('GoToPosition', `${Math.round(x)},${Math.round(y)}`);
+    },
+    AddBoundary: (vacbot, [type, coordinates]) => editMap(vacbot, maps.addBoundary(vacbot, type, coordinates), 'Boundary added.'),
+    DeleteBoundary: (vacbot, [type, id]) => editMap(vacbot, maps.deleteBoundary(vacbot, type, id), 'Boundary deleted.'),
+    MergeRooms: (vacbot, [ids]) => editMap(vacbot, maps.mergeRooms(vacbot, ids), 'Rooms merged.'),
+    DivideRoom: (vacbot, [id, line]) => editMap(vacbot, maps.divideRoom(vacbot, id, line), 'Room divided.'),
+    LabelRoom: (vacbot, [id, subtype, name]) => editMap(vacbot, maps.labelRoom(vacbot, id, subtype, name), 'Room label saved.'),
+    DeleteMap: (vacbot) => editMap(vacbot, maps.deleteMap(vacbot), 'Map deleted.'),
+    RestoreRobotBackup: (vacbot, [id]) => editMap(vacbot, maps.restoreRobotBackup(vacbot, id), 'Asked the robot to restore its backup.'),
+    RestoreMapLayout: async (vacbot, [id]) => {
+        const changed = await maps.restoreLayout(vacbot, id);
+        if (changed.labels + changed.boundaries === 0) {
+            send('Notice', 'The map already has the saved labels and boundaries.');
+            return;
+        }
+        await editMap(vacbot, null, `Re-applied ${changed.labels} room label(s) and ${changed.boundaries} boundary(ies).`);
+    },
+    SaveMapBackup: async (vacbot) => {
+        const backup = await maps.saveBackup(vacbot, session.chargingPosition);
+        await sendBackups();
+        send('Notice', `Saved a backup of the map with ${backup.rooms.length} rooms.`);
+    },
+    DeleteMapBackup: async (vacbot, [id]) => {
+        await maps.deleteBackup(id);
+        await sendBackups();
     }
 };
 
-// The API session, the connected robot, and the resolver of a pending verification code.
-const session = { api: null, vacbot: null, submitCode: null };
+// The API session, the connected robot, the last dock position and the resolver of a pending verification code.
+const session = { api: null, vacbot: null, chargingPosition: null, submitCode: null };
 
 /**
  * Connects to the robot (asking the page for a verification code if needed),
@@ -60,6 +85,7 @@ async function main() {
     send('Status', 'connecting');
     send('Verification', null);
     readline.createInterface({ input: process.stdin }).on('line', handleLine);
+    sendBackups().catch((error) => send('BridgeError', `Could not read the map backups: ${error.message}`));
     process.stdin.on('end', async () => {
         await session.vacbot?.disconnect();
         process.exit(0);
@@ -72,6 +98,7 @@ async function main() {
     session.vacbot = vacbot;
 
     FORWARDED_EVENTS.forEach((event) => vacbot.on(event, (data) => send(event, data)));
+    vacbot.on('ChargingPosition', ({ x, y }) => { session.chargingPosition = { x, y }; });
     vacbot.on('ready', () => {
         send('Device', {
             name: vacbot.getName(),
@@ -108,18 +135,19 @@ function promptPageForCode(previousCodeInvalid) {
  * @param {string} line - JSON-encoded {command, args}
  */
 function handleLine(line) {
-    try {
-        const { command, args = [] } = JSON.parse(line);
-        runCommand(command, args);
-    } catch (error) {
-        send('BridgeError', `Command failed: ${error.message}`);
-    }
+    Promise.resolve()
+        .then(() => {
+            const { command, args = [] } = JSON.parse(line);
+            return runCommand(command, args);
+        })
+        .catch((error) => send('BridgeError', `Command failed: ${error.message}`));
 }
 
 /**
  * Executes a verification command, or a robot command once the robot is connected.
  * @param {string} command - command name
  * @param {Array} args - command arguments
+ * @returns {(Promise|undefined)} the pending result of asynchronous commands
  */
 function runCommand(command, args) {
     if (command === 'VerifyCode') {
@@ -134,8 +162,7 @@ function runCommand(command, args) {
         throw new Error('the robot is not connected yet');
     }
     if (ROBOT_COMMANDS[command]) {
-        ROBOT_COMMANDS[command](session.vacbot, args);
-        return;
+        return ROBOT_COMMANDS[command](session.vacbot, args);
     }
     if (!ALLOWED_COMMANDS.has(command)) {
         throw new Error(`command not allowed: ${command}`);
@@ -165,6 +192,25 @@ function requestVerificationCode() {
     session.api.requestDeviceVerificationCode()
         .then(() => send('Verification', 'code-sent'))
         .catch((error) => send('BridgeError', `Could not send a new code: ${error.message}`));
+}
+
+/**
+ * Waits for a map edit, reports it and fetches the changed map.
+ * @param {Object} vacbot - the connected EcovacsDevice
+ * @param {?Promise} edit - the pending edit, or null when it is already done
+ * @param {string} notice - what was changed
+ */
+async function editMap(vacbot, edit, notice) {
+    await edit;
+    send('Notice', `${notice} Refreshing the map…`);
+    maps.refreshMap(vacbot);
+}
+
+/**
+ * Sends the saved map backups to the page.
+ */
+async function sendBackups() {
+    send('MapBackups', await maps.listBackups());
 }
 
 /**
